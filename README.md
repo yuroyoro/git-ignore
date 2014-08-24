@@ -69,14 +69,14 @@ Following command adds a pattern `*.class` to your `$HOME/.gitignore`.
 git ignore --global add "*.class"
 ```
 
-`git ignore pull <lang>` command is fetch recommend `.gitignore` file from [github/gitignore](https://github.com/github/gitignore).
+`git ignore pull <lang>` command is fetch recommended `.gitignore` file from [github/gitignore](https://github.com/github/gitignore).
 Follwing example fetch patterns from https://github.com/github/gitignore/Haskell.gitignore and put it to `.gitignore`
 
 ```
 $ git ignore pull Haskell
 ```
 
-When no lang arg to `git ignore pull` command, it shows available lanuage list.
+When no `lang` argument pass to `git ignore pull` command, it shows available lanuage list.
 
 ```
 $ git ignore pull
