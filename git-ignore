@@ -118,10 +118,14 @@ pull() {
     # show availale lists
     if [ -z "${lang}" ] ; then
         echo "Available list : "
-        curl -sL https://api.github.com/repos/github/gitignore/contents | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | tr '\n' ' '
+        echo ""
+        curl -sL https://api.github.com/repos/github/gitignore/contents | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | tr '\n' '\t'
 
         echo ""
-        curl -sL https://api.github.com/repos/github/gitignore/contents/Global | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | sed -e "s/^/Global\//g" |  tr '\n' ' '
+        echo ""
+        echo "Available list(global) : "
+        echo ""
+        curl -sL https://api.github.com/repos/github/gitignore/contents/Global | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | sed -e "s/^/Global\//g" |  tr '\n' '\t'
         exit 0
     fi
 
