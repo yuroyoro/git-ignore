@@ -142,7 +142,12 @@ pull() {
 
     IFS=$'\n'
     url="https://raw.githubusercontent.com/github/gitignore/master/${lang}.gitignore"
-    res=(`curl -sL "${url}"`)
+    res=(`curl -sfL "${url}"`)
+
+    if [ $? -ne 0 ]; then
+        echo "(error) ${url} is Not Found"
+        exit 1
+    fi
 
     echo "# Added from ${url}" >> ${target}
     for pat in ${res[@]}; do
