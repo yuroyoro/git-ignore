@@ -29,7 +29,6 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -x
 #
 # (Command) Show usage
 #
@@ -42,6 +41,7 @@ COMMANDS:
    list         Print ignore patterns
    add          Add pattens to .gitignore
    remove       Remove patterns from .gitignore
+   pull         Pull gitignore from https://github.com/github/gitignore
    help         Shows a list of commands or help
 
 GLOBAL OPTIONS:
@@ -80,13 +80,7 @@ add() {
 
     i=0
     for pat in ${patterns[@]}; do
-        res="`grep \"^${pat}$\" ${target} > /dev/null`"
-        if [ $? -ne 0 ]; then
-            echo "${pat}" >> ${target}
-            echo "Added a pattern (${pat}) to ${target}"
-        else
-            echo "(warning) Given pattern (${pat}) is already exists in ${target}"
-        fi
+        add_pattern ${target} "${pat}"
     done
 }
 
@@ -111,26 +105,95 @@ remove() {
 
     i=0
     for pat in ${patterns[@]}; do
-        res="`grep \"^${pat}$\" ${target} > /dev/null`"
-        if [ $? -ne 0 ]; then
-            echo "(warning) Given pattern (${pat}) is not exists in ${target}"
-        else
-            res="`sed -i -e s/^"${pat}"$//g ${target}`"
-            if [ $? -eq 0 ]; then
-                echo "Remove a pattern (${pat}) from ${target}"
-            fi
-        fi
+        remove_pattern "${target}" "${pat}"
     done
 }
 
+#
+# (Command) Remove ignore patterns from .gitignore
+#
+pull() {
+    lang="${patterns[0]}"
+
+    # show availale lists
+    if [ -z "${lang}" ] ; then
+        echo "Available list : "
+        curl -sL https://api.github.com/repos/github/gitignore/contents | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | tr '\n' ' '
+
+        echo ""
+        curl -sL https://api.github.com/repos/github/gitignore/contents/Global | grep "\"name\":.\+\.gitignore" | sed -e 's/^[ ]*\"name\"\:[ ]*\"\(.*\)\.gitignore\",/\1/g' | sed -e "s/^/Global\//g" |  tr '\n' ' '
+        exit 0
+    fi
+
+    target="${gitignore}"
+    if [ ${global} -eq 1 ] ; then
+        target="${HOME}/.gitignore"
+    else
+        if [ -z "${work_dir}" ] ; then
+            echo "(error) Not a git repository (or any of the parent directories)"
+            exit 1
+        fi
+    fi
+
+    if [ ! -f "${target}" ] ; then
+        touch "${target}"
+        echo "Created ${target}"
+    fi
+
+    IFS=$'\n'
+    url="https://raw.githubusercontent.com/github/gitignore/master/${lang}.gitignore"
+    res=(`curl -sL "${url}"`)
+
+    echo "# Added from ${url}" >> ${target}
+    for pat in ${res[@]}; do
+        case "${pat}" in
+            \#*)  ;; # comment, do nothing
+            *)    add_pattern ${target} "${pat}" ;;
+        esac
+    done
+}
 
 #
-# Setup working dir and local .gitignore path
+# (private) Setup working dir and local .gitignore path
 #
 set_ignorefile() {
     work_dir="`git rev-parse --show-toplevel 2> /dev/null`"
     if [ $? -eq 0 ]; then
         gitignore="${work_dir}/.gitignore"
+    fi
+}
+
+#
+# (private) Add a pattern to target .gitignore
+#
+add_pattern() {
+    target=$1
+    pat=$2
+
+    res="`grep \"^${pat}$\" ${target} > /dev/null`"
+    if [ $? -ne 0 ]; then
+        echo "${pat}" >> ${target}
+        echo "Added a pattern (${pat}) to ${target}"
+    else
+        echo "(warning) Given pattern (${pat}) is already exists in ${target}"
+    fi
+}
+
+#
+# (private) Revmoe a pattern from target .gitignore
+#
+remove_pattern() {
+    target=$1
+    pat=$2
+
+    res="`grep \"^${pat}$\" ${target} > /dev/null`"
+    if [ $? -ne 0 ]; then
+        echo "(warning) Given pattern (${pat}) is not exists in ${target}"
+    else
+        res="`sed -i -e s/^"${pat}"$//g ${target}`"
+        if [ $? -eq 0 ]; then
+            echo "Remove a pattern (${pat}) from ${target}"
+        fi
     fi
 }
 
@@ -141,9 +204,9 @@ global=0
 for o in $*
 do
   case "${o}" in
-    -g|--global)          global=1   ;;
-    help|add|remove|list) cmd="${o}" ;;
-    * )                   patterns+=("${o}")
+    -g|--global)               global=1   ;;
+    help|add|remove|list|pull) cmd="${o}" ;;
+    * )                        patterns+=("${o}")
   esac
 done
 
@@ -155,6 +218,7 @@ else
     add)      set_ignorefile ; add    ;;
     remove)   set_ignorefile ; remove ;;
     list)     set_ignorefile ; list   ;;
+    pull)     set_ignorefile ; pull   ;;
     * )       usage  ;;
   esac
 fi
