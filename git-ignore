@@ -74,6 +74,7 @@ add() {
     fi
 
     if [ ! -f "${target}" ] ; then
+        mkdir -p "$(dirname "${target}")"
         touch "${target}"
         echo "Created ${target}"
     fi
@@ -140,6 +141,7 @@ pull() {
     fi
 
     if [ ! -f "${target}" ] ; then
+        mkdir -p "$(dirname "${target}")"
         touch "${target}"
         echo "Created ${target}"
     fi
