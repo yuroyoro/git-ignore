@@ -110,7 +110,7 @@ remove() {
 }
 
 #
-# (Command) Remove ignore patterns from .gitignore
+# (Command) Download patterns from github.com/github/gitignore
 #
 pull() {
     lang="${patterns[0]}"
