@@ -46,6 +46,7 @@ COMMANDS:
 
 GLOBAL OPTIONS:
    --global, -g    Add/Remove patterns to global .gitignore($HOME/.gitignore)
+   --info-exclude  Add/Remove patterns to GIT_DIR/info/exclude
 EOS
 }
 
@@ -54,6 +55,7 @@ EOS
 #
 list() {
     cat ~/.gitignore   | grep -v '^\s*$' | sed -e "s/^/\(global\) /g"
+    cat "${git_dir}/info/exclude" | grep -v '^\s*$' | sed -e "s|^|\(GIT_DIR/info/exclude\) |g"
     if [ -f "${gitignore}" ] ; then
       cat "${gitignore}" | grep -v '^\s*$' | sed -e "s/^/\(local\)  /g"
     fi
@@ -66,6 +68,8 @@ add() {
     target="${gitignore}"
     if [ ${global} -eq 1 ] ; then
         target="${HOME}/.gitignore"
+    elif [ ${info_exclude} -eq 1 ]; then
+        target="${git_dir}/info/exclude"
     else
         if [ -z "${work_dir}" ] ; then
             echo "(error) Not a git repository (or any of the parent directories)"
@@ -92,6 +96,8 @@ remove() {
     target="${gitignore}"
     if [ ${global} -eq 1 ] ; then
         target="${HOME}/.gitignore"
+    elif [ ${info_exclude} -eq 1 ]; then
+        target="${git_dir}/info/exclude"
     else
         if [ -z "${work_dir}" ] ; then
             echo "(error) Not a git repository (or any of the parent directories)"
@@ -133,6 +139,8 @@ pull() {
     target="${gitignore}"
     if [ ${global} -eq 1 ] ; then
         target="${HOME}/.gitignore"
+    elif [ ${info_exclude} -eq 1 ]; then
+        target="${git_dir}/info/exclude"
     else
         if [ -z "${work_dir}" ] ; then
             echo "(error) Not a git repository (or any of the parent directories)"
@@ -172,6 +180,8 @@ set_ignorefile() {
     if [ $? -eq 0 ]; then
         gitignore="${work_dir}/.gitignore"
     fi
+
+    git_dir="`git rev-parse --git-dir 2> /dev/null`"
 }
 
 #
