@@ -220,6 +220,9 @@ remove_pattern() {
 
 patterns=()
 global=0
+if test "$info_exclude" = ""; then
+  info_exclude=0
+fi
 
 # parse options/command/patterns
 for o in $*
