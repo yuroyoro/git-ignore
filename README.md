@@ -33,6 +33,7 @@ To install, put this script to your $PATH.
 
 ```
 curl -sL https://raw.githubusercontent.com/yuroyoro/git-ignore/master/git-ignore > ~/bin/git-ignore
+chmod a+x ~/bin/git-ignore
 ```
 
 ## Example
